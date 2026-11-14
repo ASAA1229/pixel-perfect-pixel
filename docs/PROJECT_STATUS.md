@@ -29,11 +29,11 @@ This is not an approved multi-tenant client SaaS product.
 | Architecture and maintainability | 6.5 | 7.0 | Storage contracts unified (ObjectBucket/StoredObject), lease and optimistic-concurrency modules, pluggable login limiter. src/server.ts is still ~3,000 lines. |
 | Requirements and documentation | 4.5 | 7.0 | Status, stories, testing, security, operations, asset and roadmap documents reconciled to command output; REQUIREMENTS.md is still a long historical record. |
 | Implementation completeness | 7.0 | 7.5 | Strengths/leadership/training now CMS-managed; published-only sitemap; root-project 404s; chat throttle; skip link. Owner sign-off and hosted behaviour still missing. |
-| Testing and QA | 4.0 | 7.5 | 41 Vitest files / 461 tests plus 4 Node tests pass; failure-injection, concurrency, security-matrix, contract, SEO and axe suites; real-browser audit. No committed E2E suite for authenticated Admin journeys in a browser. |
+| Testing and QA | 4.0 | 7.5 | 42 Vitest files / 472 tests (1 skipped) plus 4 Node tests; failure-injection, concurrency, security-matrix, contract, SEO, axe and Miniflare R2 suites; 17 Playwright browser E2E (Admin journeys plus keyboard/zoom/reflow/target-size); real-browser audit with INP. The Vitest suite is FLAKY: 2 of 4 reruns on 2026-11-14 had timeouts in the image/resume lifecycle tests (fix in progress, not yet verified), so the 472 figure is not a stable pass. |
 | Security and privacy | 5.5 | 7.0 | Shared limiter (KV/R2 CAS), central CSRF guard, 150+ route/session/CSRF assertions, abort propagation. Production-like verification and secret rotation drill absent. |
 | Performance and scalability | 4.0 | 6.5 | Budgets measured (below); fonts self-hosted so CLS fell from 0.128 to 0.005; 10.9 MB of unreferenced originals moved out of public/; INP measured, worst 216 ms against a 200 ms target; no field Web Vitals; no hosted load test. |
 | Accessibility and compatibility | 4.5 | 6.5 | Zero axe violations in jsdom (49 routes/screens) and in real Chrome with contrast (34 page loads at 2 viewports); skip link and reflow fixed. No screen-reader or device review. |
-| CI/CD and DevOps | 5.0 | 6.0 | Stage order, npm audit gate, budget step, package-manager guard, advisory browser job; local manifest verification passes (198 files). No observed GitHub/Jenkins run. |
+| CI/CD and DevOps | 5.0 | 6.0 | Stage order, npm audit gate, budget step, package-manager guard, advisory browser job; local manifest verification passes (208 files, coordinator rerun; was 198 before the e2e/ files were added); `e2e` job configured in artifact-integrity.yml. No observed GitHub/Jenkins run. |
 | Deployment and infrastructure | 3.5 | 3.5 | Unchanged: no staging deployment, no wrangler deploy, no hosted R2. |
 | Monitoring, backup and disaster recovery | 4.0 | 5.0 | Backup/restore round trip and rollback verified against an R2 model; no hosted restore drill, monitoring or alerting. |
 | Release readiness and support | 3.0 | 4.0 | Gates run locally and are scripted (`npm run verify`); P0 external validations and owner approval remain. |
@@ -51,9 +51,9 @@ This is not an approved multi-tenant client SaaS product.
 | Bundle budget (`npm run check:budget`) | none | pass (4/4 budgets) |
 | Package manager guard (`npm run check:pm`) | none | pass |
 | Dependency audit (`npm audit --audit-level=high`) | 2 high + 1 moderate in production dependencies | 0 high; production dependencies 0 vulnerabilities; 10 moderate dev-tooling advisories remain |
-| Artifact manifest verification (scripts/artifact-integrity.mjs, customer-release-verifier.mjs) | not run | pass: 198 files, stages 1-3 of the customer verifier (run with simulated GitHub provenance variables) |
-| Playwright browser E2E (`npm run test:e2e`) | none | 17 passed (Admin login, throttle, CSRF, edit/publish/public view, image upload, backup, logout-everywhere; keyboard, reflow, target size) |
-| Real R2 emulator suite (Miniflare, run by Vitest) | none | 11 passed |
+| Artifact manifest verification (scripts/artifact-integrity.mjs, customer-release-verifier.mjs) | not run | pass: 208 files (was 198; coordinator rerun, not re-run by the documentation owner), stages 1-3 of the customer verifier (run with simulated GitHub provenance variables) |
+| Playwright browser E2E (`npm run test:e2e`) | none | 17/17 passed (Admin login, throttle, CSRF, edit/publish/public view, image upload, backup, logout-everywhere; 8 accessibility checks for keyboard, zoom, reflow and target size) |
+| Real R2 emulator suite (Miniflare, run by Vitest) | none | 11 passed (local emulator; not hosted R2) |
 | Real-browser audit (`scripts/browser-audit.mjs`) | none | 34 page loads, 0 axe violations (contrast included); 1 budget finding |
 
 ## Measured performance (production build, local, no network throttling)
@@ -71,7 +71,7 @@ This is not an approved multi-tenant client SaaS product.
 | Largest per-page image payload | 470 KB | n/a |
 | Static media in public/ and src/assets | public/ 1.6 MB after archiving 8 unreferenced originals (10.9 MB) to assets-archive/; src/assets about 1.1 MB | n/a |
 
-CLS finding: the mobile home hero shifts after the web font swap (fonts come from Google Fonts with `display=swap`). Self-hosting the fonts with size-adjusted fallbacks is the recommended fix; it was not done. INP was not measured (no scripted interaction). These are regression guards, not field data.
+CLS finding (resolved): the mobile home hero used to shift after the web font swap (CLS 0.128 against a 0.1 budget) while fonts came from Google Fonts. Fonts are now self-hosted with size-adjusted fallbacks and the worst CLS across all measured loads is 0.005. INP finding (open): INP is now measured in the browser audit with web-vitals and scripted interactions; it is still OVER the 200 ms target (216 ms on the last full run, 344 ms on an earlier run), so the performance budget is not met on every run. These are lab regression guards, not field data.
 
 ## Gap register
 
@@ -79,15 +79,15 @@ Statuses use the classification required for this initiative. "Locally tested" m
 
 | ID | Priority | Final classification | Evidence |
 |---|---|---|---|
-| PORT-GAP-001 | P0 | COMPLETE AND VERIFIED (locally) | 0 typecheck errors, 0 lint problems, 461+4 tests pass, build and manifest pass. Commit 2758508. A GitHub run of the pushed SHA has not been observed. |
-| PORT-GAP-002 | P0 | PARTIALLY COMPLETE | Contracts unified; cross-isolate lease via conditional writes; failure injection at every storage operation; crashed-isolate recovery; multi-isolate concurrency (src/test/storage-r2-contract.test.ts). Verified only against an in-memory model of the documented R2 API; hosted R2 semantics unverified (external). |
+| PORT-GAP-001 | P0 | PARTIALLY COMPLETE (downgraded 2026-11-14 from COMPLETE AND VERIFIED because the Vitest suite is flaky) | 0 typecheck errors, 0 lint problems, build and manifest pass; Vitest 472 passed / 1 skipped (flaky: timeouts in 2 of 4 reruns, being fixed) plus 4 Node tests. Commit 2758508 (original); evidence refreshed 2026-11-14. A GitHub run of the pushed SHA has not been observed. |
+| PORT-GAP-002 | P0 | PARTIALLY COMPLETE | Contracts unified; cross-isolate lease via conditional writes; failure injection at every storage operation; crashed-isolate recovery; multi-isolate concurrency (src/test/storage-r2-contract.test.ts). Verified against an in-memory model of the documented R2 API and, since commit be1f605, against Miniflare's R2 emulator (11 tests covering storage, limiter and Admin flows); hosted R2 semantics remain unverified (external). |
 | PORT-GAP-003 | P0 | PARTIALLY COMPLETE | LoginLimiter interface with memory, R2 compare-and-set and KV implementations (src/lib/login-limiter.ts); central CSRF guard; 104-case admin security matrix; session expiry/revocation/rotation/malformed-epoch tests. R2/KV limiters verified against models only; production-like multi-instance acceptance external. |
 | PORT-GAP-004 | P0 | COMPLETE AND VERIFIED (locally) | PERSON_FIELD_COVERAGE proves every public person field is CMS-managed, image-managed, or curated identity; strengths/leadership/training added; four-profile draft/preview/publish/rollback/unpublish matrix over the Admin API; etag concurrency (409). Owner field sign-off remains PORT-US-048. |
-| PORT-GAP-005 | P0 | PARTIALLY COMPLETE | Four-profile resume and image lifecycle suites (private originals, public copies, versions, project placement) pass on the local disk bucket and failure proxies; fixed temp-file collision and symlinked-ancestor root bug. Real R2 reconciliation external. |
+| PORT-GAP-005 | P0 | PARTIALLY COMPLETE | Four-profile resume and image lifecycle suites (private originals, public copies, versions, project placement) pass on the in-memory R2 model (commit 62803ad replaced the local disk bucket in these suites), failure proxies and the Miniflare R2 emulator; fixed temp-file collision and symlinked-ancestor root bug. Real R2 reconciliation external. |
 | PORT-GAP-006 | P1 | PARTIALLY COMPLETE | 29 contract tests through Worker plus route: auth headers, URL/key validation, paid-fallback opt-in, status mapping without leaks, four-profile isolation including forged client context and drafts, timeouts, cancellation (a real bug: abort signal was dropped; fixed), chat throttle. Gateway stubbed; real JARVIS external. |
 | PORT-GAP-007 | P1 | COMPLETE AND VERIFIED (locally) | Published-only sitemap served by the Worker; root `/projects/:slug` now 404 (previously 200); HTTP statuses observed against the built Node server (200/404/301/200); 18 SEO/HTTP tests. Production origin (VITE_SITE_URL) external. |
-| PORT-GAP-008 | P1 | PARTIALLY COMPLETE | axe 49/49 clean in jsdom; real Chrome 0 violations incl. contrast at 375 and 1280 px; skip link, landmarks, names, reflow fixed. Manual screen-reader, keyboard-only and device review not done. |
-| PORT-GAP-009 | P1 | PARTIALLY COMPLETE | Budgets and measuring scripts exist; all static budgets pass; mobile home CLS 0.128 fails; no field data or load test. |
+| PORT-GAP-008 | P1 | PARTIALLY COMPLETE | axe 49/49 clean in jsdom; real Chrome 0 violations incl. contrast at 375 and 1280 px; skip link, landmarks, names, reflow fixed. Playwright accessibility checks (8, commit d8dd006) cover keyboard, zoom, reflow and target size, and surfaced fixes. Manual screen-reader and physical-device review not done. |
+| PORT-GAP-009 | P1 | PARTIALLY COMPLETE | Budgets and measuring scripts exist; all static budgets pass; CLS fixed by self-hosting fonts (worst 0.005); INP now measured with web-vitals (commit 12e0aea) and still over the 200 ms target (216 to 344 ms across runs), so the budget is not met; no field data or load test. |
 | PORT-GAP-010 | P1 | IMPLEMENTED — NOT FULLY TESTED | Stage order typecheck, lint, test, build, budget, manifest; npm audit gate; package-manager guard; Jenkinsfile aligned; YAML parses; every command run locally. GitHub Actions and Jenkins runs not observed; Nexus intentionally disabled. |
 | PORT-GAP-011 | P1 | BLOCKED BY EXTERNAL DEPENDENCY | Staging deployment requires owner-approved Cloudflare environment; out of bounds (no wrangler deploy). |
 | PORT-GAP-012 | P1 | PARTIALLY COMPLETE | Backup/restore round trip byte-for-byte, incomplete/tampered/unsafe backups rejected with zero writes, rollback after injected write failure, migration (src/test/storage-r2-contract.test.ts). Hosted restore drill, RPO/RTO and alerting external. |
@@ -122,10 +122,14 @@ Large integration gap to main/dev remains; do not merge blindly (PORT-GAP-013).
 ## Delivery order
 
 1. GAP-001 through GAP-007: implemented and locally verified (see register).
-2. GAP-008/009: automated evidence in place; manual accessibility review, CLS fix and field measurements remain.
+2. GAP-008/009: automated evidence in place; CLS fixed; INP still above target; manual accessibility review and field measurements remain.
 3. GAP-010/012/014/015/016: implemented; hosted runs and owner rights confirmation remain.
 4. GAP-011/013: blocked on owner-controlled environments.
 
 ## Constraints and release
 
 Preserve React + TypeScript + TanStack Start and Cloudflare/R2. Keep four-profile personal portfolio scope. Work on new only; no force-push, history rewrite, branch deletion or merge. This initiative authorizes local validation and code/docs on new, not production probing, provisioning, deployment, Nexus publication, branch-protection changes or release. Release is **NO-GO** until hosted storage and security acceptance, staging deployment, manual accessibility review, owner four-profile sign-off, rollback rehearsal and explicit owner approval are complete.
+
+## Documentation reconciliation — 2026-11-14 (documentation owner)
+
+Corrected stale statements to match command output and the coordinator's reruns: Vitest 42 files / 472 passed / 1 skipped (flaky, see Testing row); Playwright 17/17; Miniflare R2 11 tests; manifest 208 files; CLS 0.005 after self-hosting fonts; INP measured and still above 200 ms. Documentation-owner reruns on head c91bd10: `npm run typecheck` exit 0 and `npm run lint` exit 0. No GitHub Actions or Jenkins run has been observed (the `gh` CLI is unauthenticated), so nothing is CI VERIFIED.

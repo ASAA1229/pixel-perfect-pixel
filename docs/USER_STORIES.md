@@ -307,12 +307,12 @@ Local validation on branch new (see PROJECT_STATUS.md for commands and counts). 
 | PORT-US-049 Admin control room | TEST PASSED (local) | All admin pages and APIs covered by the unauthenticated/CSRF matrix and axe; nested main landmarks and unlabeled file input fixed |
 | PORT-US-050 Resources drive public profiles | TEST PASSED (local) | Four-profile resume/image lifecycle suites |
 | PORT-US-051 Resource lifecycle integrity | NEEDS TESTING (hosted) | Inspector suites pass locally; real storage not exercised |
-| PORT-US-052 Engineering acceptance | TEST PASSED (local) | 0 typecheck errors, 0 lint problems, 461 tests; no browser Admin E2E suite |
+| PORT-US-052 Engineering acceptance | TEST PASSED (local) | 0 typecheck errors, 0 lint problems, 472 Vitest (flaky: timeouts in 2 of 4 reruns), 17/17 Playwright Admin/accessibility E2E |
 | PORT-US-034/037 JARVIS | NEEDS TESTING (gateway) | 29 contract tests, cancellation bug fixed, chat throttle added |
 | PORT-US-044 SEO | TEST PASSED (local) | Published-only sitemap, real 404 for root and person project pages |
 | PORT-US-047 Visual customization | NEEDS TESTING | Theme validation and merge covered; no new visual regression suite |
 | PORT-US-048 Owner sign-off | OWNER ACCEPTANCE PENDING | Unchanged |
-| PORT-US-053 Accessibility/performance | NEEDS TESTING | axe clean; skip link added; CLS 0.128 on mobile home; manual review absent |
+| PORT-US-053 Accessibility/performance | NEEDS TESTING | axe clean; skip link added; Playwright keyboard/zoom/reflow/target-size checks pass; CLS fixed (0.005); INP 216 to 344 ms, over the 200 ms target; manual review absent |
 | PORT-US-054 CI/CD | IMPLEMENTED | Stage order, audit gate, budget, package-manager guard; runs unobserved |
 | PORT-US-055 Operations and rollback | PLANNED | External configuration list in OPERATIONS.md |
 

@@ -4,7 +4,7 @@ A cinematic, Netflix-inspired, multi-profile portfolio and owner-managed content
 
 ## Project health
 
-**Current release status: NO-GO.** On branch `new` typecheck (0 errors), lint (0 problems), 461 unit/integration tests, production build, bundle budget and manifest verification pass locally (2026-11-14); no hosted CI run, staging deployment, hosted R2 acceptance, manual accessibility review or owner sign-off exists yet. See [authoritative project status](docs/PROJECT_STATUS.md), [remaining stories](docs/USER_STORIES.md) and [release gates](docs/RELEASE_READINESS.md).
+**Current release status: NO-GO.** On branch `new` typecheck (0 errors), lint (0 problems), 472 Vitest tests (1 skipped; the suite is flaky, with timeouts in the image/resume lifecycle tests being fixed), 17 Playwright browser E2E tests, production build, bundle budget and manifest verification pass locally (2026-11-14); INP is measured and still above its 200 ms target; no hosted CI run, staging deployment, hosted R2 acceptance, manual accessibility review or owner sign-off exists yet. See [authoritative project status](docs/PROJECT_STATUS.md), [remaining stories](docs/USER_STORIES.md) and [release gates](docs/RELEASE_READINESS.md).
 
 ## What it does
 - Presents four profile-specific public experiences with shared navigation, design language and reusable sections.
