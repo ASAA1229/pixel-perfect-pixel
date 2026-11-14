@@ -75,3 +75,12 @@ When `REQUIRE_BUILD_PROVENANCE=true`, set `GIT_COMMIT` (or `GIT_COMMIT_SHA`) and
 
 Changes to the pipeline and integrity scripts must be validated in Jenkins before being treated as release-ready. A successful local commit or PR update alone does not prove that the configured Jenkins agent, Nexus permissions, or repository behavior works end to end.
 
+
+
+---
+
+## ASAA Master Requirements Baseline v1.0 — 2026-11-14
+
+Approved planning/governance reference for the four ASAA projects and shared ecosystem capabilities. Round 6 consolidation is complete at framework level. Individual requirement mapping, full source reconciliation, branch/runtime verification, named owners, dependency validation, acceptance criteria, evidence-based gaps and delivery estimates remain pending. Approval does not authorize implementation, testing, deployment, paid services or merges.
+
+See `docs/ASAA_MASTER_REQUIREMENTS_BASELINE.md`, `docs/PROJECT_SCOPE.md` and `docs/EPIC_STATUS.md` for the current project scope and epic tracker.
