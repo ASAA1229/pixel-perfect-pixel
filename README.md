@@ -51,3 +51,12 @@ Configure `JARVIS_AI_URL` and `JARVIS_AI_KEY` as server-side environment variabl
 ## Delivery status — 2026-11-13
 See [authoritative project status](docs/PROJECT_STATUS.md) for exact commands, counts and the gap register. Run `npm run verify` for the local gate; earlier GitHub run numbers (#617, #43420111801) are superseded history. Release remains NO-GO.
 The active documentation/source branch is `new` (observed head: `14f94a194c6bfcba9ed3f5e5dd1e036b8d82ebc6`). Implementation is substantial, but production release is **not approved or verified**. Source implementation, tests authored, tests executed and owner acceptance are separate states. Validation remains paused by owner direction: do not run tests, builds, typechecks, lint, security scans, browser/device/accessibility checks, CI/Jenkins or release validation until explicitly resumed. Do not merge to `dev`/`main`, deploy or release without explicit approval. See [User Stories](docs/USER_STORIES.md) and [Release Readiness](docs/RELEASE_READINESS.md) for the authoritative remaining-work baseline.
+
+
+---
+
+## ASAA Master Requirements Baseline v1.0 — 2026-11-14
+
+Approved planning/governance reference for the four ASAA projects and shared ecosystem capabilities. Round 6 consolidation is complete at framework level. Individual requirement mapping, full source reconciliation, branch/runtime verification, named owners, dependency validation, acceptance criteria, evidence-based gaps and delivery estimates remain pending. Approval does not authorize implementation, testing, deployment, paid services or merges.
+
+See `docs/ASAA_MASTER_REQUIREMENTS_BASELINE.md`, `docs/PROJECT_SCOPE.md` and `docs/EPIC_STATUS.md` for the current project scope and epic tracker.
