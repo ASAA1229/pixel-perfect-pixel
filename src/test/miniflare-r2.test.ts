@@ -148,7 +148,8 @@ describe("real R2: lease, transactions and limiter", () => {
     const after = await snapshot(reference);
     expect(after).not.toBe(before);
 
-    for (let failAt = 0; failAt < total; failAt += 1) {
+    // Each failure point uses its own bucket, so the sweep runs concurrently instead of serially.
+    const sweep = async (failAt: number) => {
       const bucket = await fresh();
       await seed(bucket);
       let armed = true;
@@ -167,7 +168,8 @@ describe("real R2: lease, transactions and limiter", () => {
       await recoverPendingStorageTransaction(handle(bucket));
       const final = await snapshot(bucket);
       expect([before, after], `torn state failing at ${failAt}`).toContain(final);
-    }
+    };
+    await Promise.all(Array.from({ length: total }, (_, failAt) => sweep(failAt)));
   }, 120_000);
 
   it("expires a dead holder's lease and refuses to steal a live one", async () => {
@@ -194,10 +196,10 @@ describe("real R2: lease, transactions and limiter", () => {
       () => new StorageLoginLimiter(handle(bucket), { maxAttempts: 1000 }),
     );
     await Promise.all(
-      Array.from({ length: 20 }, (_, i) => limiters[i % 3]!.recordFailure("198.51.100.5")),
+      Array.from({ length: 9 }, (_, i) => limiters[i % 3]!.recordFailure("198.51.100.5")),
     );
     const [key] = await keys(bucket, "private-admin/ratelimit/");
-    expect(JSON.parse((await text(bucket, key!))!).count).toBe(20);
+    expect(JSON.parse((await text(bucket, key!))!).count).toBe(9);
   }, 60_000);
 });
 

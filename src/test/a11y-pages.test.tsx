@@ -70,6 +70,8 @@ async function audit(container: HTMLElement) {
       type: "tag",
       values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"],
     },
+    // Only violations are consumed; skipping pass/incomplete result processing cuts axe time a lot.
+    resultTypes: ["violations"],
     rules: { "color-contrast": { enabled: false }, region: { enabled: false } },
   });
   return results.violations.map(
